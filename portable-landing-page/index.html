@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Explore Earth observation and agricultural intelligence with AgriShif.">
+    <meta name="theme-color" content="#081411">
+    <title>AgriShif | Earth Intelligence</title>
+    <link rel="icon" href="assets/brand-mark.webp">
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <div class="header-inner">
+          <a class="brand" href="#top" aria-label="AgriShif home">
+            <img class="brand-mark" src="assets/brand-mark.webp" alt="">
+            <span>AgriShif</span>
+          </a>
+
+          <nav class="desktop-nav" aria-label="Main navigation">
+            <a href="#data">Explore Earth <span aria-hidden="true">⌄</span></a>
+            <a href="#intelligence">Intelligence <span aria-hidden="true">⌄</span></a>
+            <a href="#data">Environmental Data <span aria-hidden="true">⌄</span></a>
+            <a href="#about">About</a>
+          </nav>
+
+          <div class="header-actions">
+            <button class="theme-toggle" type="button" aria-label="Switch to light theme" title="Toggle color theme">
+              <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path></svg>
+              <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"></path></svg>
+            </button>
+            <a class="button header-cta" href="#data">Launch Explorer <span aria-hidden="true">→</span></a>
+            <details class="mobile-navigation">
+              <summary aria-label="Open navigation">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+              </summary>
+              <nav class="mobile-menu-panel" aria-label="Mobile navigation">
+                <a href="#data">Explore Earth</a>
+                <a href="#intelligence">Intelligence</a>
+                <a href="#data">Environmental Data</a>
+                <a href="#about">About</a>
+                <a class="button mobile-menu-cta" href="#data">Launch Explorer <span aria-hidden="true">→</span></a>
+              </nav>
+            </details>
+          </div>
+        </div>
+      </header>
+
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow">Earth systems · Agriculture · Intelligence</p>
+            <h1 class="hero-title" id="hero-title">See the Earth <span>Differently<span class="title-period">.</span></span></h1>
+            <p class="hero-description">
+              Turn Earth observation into meaningful agricultural intelligence. Explore environmental
+              changes, understand emerging risks, and discover smarter ways to adapt.
+            </p>
+            <div class="hero-actions">
+              <a class="button primary-button" href="#data">Explore the Earth <span aria-hidden="true">→</span></a>
+              <a class="secondary-button" href="#how-it-works">
+                <span class="play-icon" aria-hidden="true">▶</span>
+                Discover How It Works
+              </a>
+            </div>
+            <p class="hero-footnote">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5C12 3.5 5 6.7 5 13.1c0 3.3 2.2 5.4 5.1 5.4 6.1 0 9.9-7.5 10.4-15Z"></path><path d="M3 21c2.4-5.3 6.4-8.5 12-10"></path></svg>
+              Earth observation data, made easier to explore with AI.
+            </p>
+          </div>
+          <figure class="hero-visual">
+            <img class="hero-globe" src="assets/hero-earth-scene-feathered.webp" alt="Illustrative globe with agricultural intelligence and environmental monitoring markers">
+            <figcaption class="hero-caption">Illustrative visualization · Not live data</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="capability-band" id="intelligence" aria-label="Platform capabilities">
+        <div class="capability-inner">
+          <article class="capability">
+            <span class="capability-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 21s8-4 8-11V5l-8-3-8 3v5c0 7 8 11 8 11Z"></path><path d="M12 8v5m0 3h.01"></path></svg>
+            </span>
+            <span><h2>Earth Observation</h2><p>Real satellite data. Global coverage.</p></span>
+          </article>
+          <article class="capability">
+            <span class="capability-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M11 20A8 8 0 0 1 3 12c0-4.4 3.6-8 8-8 5 0 9 4 9 9 0 3.9-2.7 7-6.2 7-1.8 0-2.8-1-2.8-2.4 0-.8.4-1.3.8-1.8.4-.5.8-1 .8-1.8 0-1.1-.9-2-2-2H8"></path><path d="M7.5 10.5h.01M10 7.5h.01M14 8.5h.01M16.5 12h.01"></path></svg>
+            </span>
+            <span><h2>Environmental Intelligence</h2><p>Track change. Assess risk.</p></span>
+          </article>
+          <article class="capability">
+            <span class="capability-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-5 5"></path></svg>
+            </span>
+            <span><h2>AI-Assisted Decisions</h2><p>Turn insight into action.</p></span>
+          </article>
+        </div>
+      </section>
+
+      <section class="workflow" id="how-it-works" aria-label="How AgriShif works">
+        <div class="workflow-inner">
+          <article class="workflow-step"><span class="step-number">01</span><span><h2>Explore</h2><p>View Earth observation data across the globe.</p></span></article>
+          <article class="workflow-step"><span class="step-number">02</span><span><h2>Understand</h2><p>Uncover environmental trends, risks and opportunities.</p></span></article>
+          <article class="workflow-step"><span class="step-number">03</span><span><h2>Adapt</h2><p>Make informed decisions for more resilient agriculture.</p></span></article>
+        </div>
+      </section>
+
+      <section class="data-section" id="data" aria-labelledby="data-title">
+        <div class="data-heading">
+          <div class="data-title-group">
+            <img class="nasa-logo" src="assets/nasa-logo.svg" alt="NASA">
+            <div><p class="data-eyebrow">Earth observation sources</p><h2 id="data-title">NASA data beyond POWER.</h2></div>
+          </div>
+          <p>Five NASA data products bring weather, rainfall, soil moisture, vegetation and fire context together for agricultural intelligence.</p>
+        </div>
+        <div class="data-grid">
+          <article class="data-card"><span class="source-number">01</span><h3>NASA POWER</h3><p>Daily weather and solar radiation</p><small>POWER Daily Point API</small></article>
+          <article class="data-card"><span class="source-number">02</span><h3>NASA GPM IMERG</h3><p>Global precipitation estimates</p><small>GPM_3IMERGDF.07</small></article>
+          <article class="data-card"><span class="source-number">03</span><h3>NASA SMAP L4</h3><p>Surface and root-zone soil moisture</p><small>SPL4SMGP.008</small></article>
+          <article class="data-card"><span class="source-number">04</span><h3>NASA MODIS</h3><p>Vegetation health indices</p><small>MOD13Q1.061</small></article>
+          <article class="data-card"><span class="source-number">05</span><h3>NASA FIRMS</h3><p>Near-real-time fire detections</p><small>VIIRS_NOAA21_NRT</small></article>
+        </div>
+        <p class="disclaimer">
+          Data availability varies by source; some products require NASA Earthdata or FIRMS credentials.
+          NASA does not endorse AgriShif. The globe above is illustrative, not live data.
+        </p>
+      </section>
+
+      <section class="cta-section" id="about">
+        <p class="cta-eyebrow">A more informed point of view</p>
+        <h2>Your Next Agricultural Insight Starts Here.</h2>
+        <p>Explore environmental conditions across the Earth and discover what the data can tell you.</p>
+        <a class="button cta-button" href="#top">Launch AgriShif Explorer <span aria-hidden="true">→</span></a>
+      </section>
+
+      <footer class="footer">
+        <a class="footer-brand" href="#top" aria-label="AgriShif home"><img src="assets/brand-mark.webp" alt=""><span>AgriShif</span></a>
+        <p>Geospatial agricultural intelligence for a more resilient planet.</p>
+        <nav aria-label="Footer navigation"><a href="#data">Explore</a><a href="#data">Five NASA Data Sources</a><a href="#about">About</a></nav>
+        <p class="footer-note">Earth observation data: NASA POWER, GPM, SMAP, MODIS and FIRMS. <span>NASA does not endorse AgriShif.</span></p>
+      </footer>
+    </main>
+  </body>
+</html>
