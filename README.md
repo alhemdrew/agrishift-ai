@@ -1,7 +1,8 @@
 <p align="center">
   # AGRISHIFT AI
+  <br>
 
-  <img src="agrishift-ai/public/logo.png" alt="AgriShift AI Logo" width="200">
+  <img src="/public/logo.png" alt="AgriShift AI Logo" width="200">
 </p>
 
 ### From earth observations to smarter agricultural decisions.
