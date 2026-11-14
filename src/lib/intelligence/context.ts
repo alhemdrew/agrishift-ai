@@ -6,7 +6,7 @@ import type {
   SourceId,
 } from '../earth-data/types';
 
-const sourceIds: SourceId[] = ['power', 'gpm', 'smap', 'modis', 'firms'];
+const sourceIds: SourceId[] = ['power', 'gpm', 'smap', 'modis', 'firms', 'soilgrids', 'chirps'];
 const maxModelSamplesPerSource = 8;
 
 export interface SelectedLocation {

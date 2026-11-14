@@ -52,7 +52,7 @@ export async function fetchSoilgridsObservations(query: PointQuery): Promise<Obs
 
     let response: Response;
     try {
-      response = await fetchWithTimeout(url, { cache: 'no-store' });
+      response = await fetchWithTimeout(url, { cache: 'no-store', signal: query.signal });
     } catch {
       throw new UpstreamError('SoilGrids could not be reached. Check the network and retry.', 502, 'soilgrids');
     }

@@ -139,7 +139,7 @@ async function getAppeearsToken(): Promise<string> {
   return appeearsLoginInFlight;
 }
 
-async function fetchAppeears(url: string, init: RequestInit = {}): Promise<Response> {
+async function fetchAppeears(url: string, init: RequestInit = {}, signal?: AbortSignal): Promise<Response> {
   for (let attempt = 0; attempt < 2; attempt += 1) {
   const token = await getAppeearsToken();
   const headers = new Headers(init.headers);
@@ -148,7 +148,7 @@ async function fetchAppeears(url: string, init: RequestInit = {}): Promise<Respo
 
   let response: Response;
   try {
-    response = await fetchWithTimeout(url, { ...init, headers, redirect: 'manual', cache: 'no-store' });
+    response = await fetchWithTimeout(url, { ...init, headers, redirect: 'manual', cache: 'no-store', signal });
   } catch {
     throw new UpstreamError('NASA AppEEARS could not be reached. Check the network and retry.', 502, 'modis');
   }
@@ -177,6 +177,7 @@ async function fetchAppeears(url: string, init: RequestInit = {}): Promise<Respo
         headers: downloadHeaders,
         redirect: 'follow',
         cache: 'no-store',
+        signal,
       });
     } catch {
       throw new UpstreamError('NASA AppEEARS result file could not be downloaded. Retry the request.', 502, 'modis');
@@ -320,7 +321,7 @@ export async function fetchModisObservations(
       headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify(taskBody),
       cache: 'no-store',
-    });
+    }, query.signal);
     if (!response.ok) {
       return throwAppeearsResponseError(response, 'task submission');
     }
@@ -330,7 +331,7 @@ export async function fetchModisObservations(
     return taskResult({ ...task, task_id: taskId }, query);
   }
 
-  const statusResponse = await fetchAppeears(`${api}/task/${encodeURIComponent(taskId)}`, { headers });
+  const statusResponse = await fetchAppeears(`${api}/task/${encodeURIComponent(taskId)}`, { headers }, query.signal);
   if (!statusResponse.ok) {
     return throwAppeearsResponseError(statusResponse, 'task status');
   }
@@ -342,7 +343,7 @@ export async function fetchModisObservations(
     return taskResult({ ...task, task_id: taskId }, query);
   }
 
-  const bundleResponse = await fetchAppeears(`${api}/bundle/${encodeURIComponent(taskId)}`, { headers });
+  const bundleResponse = await fetchAppeears(`${api}/bundle/${encodeURIComponent(taskId)}`, { headers }, query.signal);
   if (!bundleResponse.ok) {
     return throwAppeearsResponseError(bundleResponse, 'bundle listing');
   }
@@ -357,7 +358,7 @@ export async function fetchModisObservations(
     const fileResponse = await fetchAppeears(fileUrl, {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
-    });
+    }, query.signal);
     if (!fileResponse.ok) {
       return throwAppeearsResponseError(fileResponse, 'result download');
     }

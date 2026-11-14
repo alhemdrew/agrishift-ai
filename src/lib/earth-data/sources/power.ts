@@ -32,7 +32,7 @@ export async function fetchPowerObservations(query: PointQuery): Promise<Observa
 
   let response: Response;
   try {
-    response = await fetchWithTimeout(url, { next: { revalidate: 3600 } });
+    response = await fetchWithTimeout(url, { cache: 'no-store', signal: query.signal });
   } catch {
     throw new UpstreamError('NASA POWER could not be reached. Check the network and retry.', 502, 'power');
   }

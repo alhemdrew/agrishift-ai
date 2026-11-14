@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { fetchObservationHub } from '@/lib/earth-data/hub';
+import { assessAgriculture } from '@/lib/agriculture/assessment';
 import type { PointQuery, SourceId } from '@/lib/earth-data/types';
 import {
   buildGroundedContext,
@@ -245,7 +246,12 @@ export async function POST(request: Request) {
     saveTaskIds(key, currentHub);
     const context = buildGroundedContext(currentHub, validated.location, query);
     const geminiStartedAt = Date.now();
-    const answer = await generateGroundedAnswer(validated.question, validated.history, context);
+    const agriculture = assessAgriculture(
+      currentHub,
+      validated.location.latitude,
+      validated.location.longitude,
+    );
+    const answer = await generateGroundedAnswer(validated.question, validated.history, context, agriculture);
     const geminiDurationMs = Date.now() - geminiStartedAt;
 
     return NextResponse.json({
@@ -282,6 +288,12 @@ export async function POST(request: Request) {
       sources_used: Array.from(new Set(context.sources.flatMap((source) =>
         source.valid_observation_count > 0 ? [source.source_id] : [],
       ))),
+      agriculture: {
+        season: agriculture.season,
+        crops: agriculture.crops,
+        risks: agriculture.risks,
+        missing_information: agriculture.missingInformation,
+      },
       generated_at: new Date().toISOString(),
     });
   } catch (error) {

@@ -1,0 +1,272 @@
+/* AgriShift landing page. Scoped to .agrishift-landing so it never affects auth pages. */
+html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
+.agrishift-landing {
+  color-scheme: dark;
+  --paper: #081411;
+  --surface: #10251e;
+  --ink: #ecf5ef;
+  --muted: #a9beb4;
+  --forest: #82d6a0;
+  --leaf: #52be7b;
+  --mint: #9de0b2;
+  --amber: #f0ad42;
+  --line: #294438;
+  --button: #176a4c;
+  --button-hover: #20825d;
+  --button-text: #f4fff7;
+  --panel: #0e201a;
+  --subtle: #c0d0c8;
+}
+.agrishift-landing[data-theme="light"] {
+  color-scheme: light;
+  --paper: #f7faf6;
+  --surface: #edf5f0;
+  --ink: #103c36;
+  --muted: #34534d;
+  --forest: #075548;
+  --leaf: #3c9f70;
+  --mint: #b8e3cb;
+  --amber: #ec9a24;
+  --line: #c9dbd2;
+  --button: #075548;
+  --button-hover: #063e35;
+  --button-text: #fff;
+  --panel: #fff;
+  --subtle: #29433e;
+}
+.agrishift-landing * { box-sizing: border-box; }
+.agrishift-landing button, .agrishift-landing a { -webkit-tap-highlight-color: transparent; }
+.agrishift-landing a:focus-visible, .agrishift-landing button:focus-visible, .agrishift-landing summary:focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; }
+.agrishift-landing .page { min-height: 100vh; overflow: clip; background: var(--paper); color: var(--ink); }
+.agrishift-landing .header { position: sticky; z-index: 20; top: 0; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--paper) 94%, transparent); backdrop-filter: blur(16px); }
+.agrishift-landing .header-inner { display: flex; width: min(100% - 64px, 1420px); min-height: 76px; align-items: center; justify-content: space-between; gap: 30px; margin-inline: auto; }
+.agrishift-landing .brand, .agrishift-landing .footer-brand { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 11px; color: var(--ink); font-size: 19px; font-weight: 750; text-decoration: none; }
+.agrishift-landing .brand-mark { display: block; width: 52px; height: 48px; object-fit: contain; }
+.agrishift-landing .desktop-nav { display: flex; align-items: center; gap: clamp(18px, 3vw, 42px); }
+.agrishift-landing .desktop-nav a, .agrishift-landing .footer nav a { display: inline-flex; align-items: center; gap: 7px; color: var(--ink); font-size: 14px; font-weight: 600; text-decoration: none; transition: color 150ms ease; }
+.agrishift-landing .desktop-nav a:hover, .agrishift-landing .footer nav a:hover { color: var(--leaf); }
+.agrishift-landing .desktop-nav a span { font-size: 17px; }
+.agrishift-landing .header-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 12px; }
+.agrishift-landing .theme-toggle { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--forest); cursor: pointer; }
+.agrishift-landing .theme-toggle:hover { background: var(--surface); }
+.agrishift-landing .theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.agrishift-landing[data-theme="dark"] .moon-icon, .agrishift-landing[data-theme="light"] .sun-icon { display: none; }
+.agrishift-landing .button { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 10px; padding: 0 19px; border: 1px solid var(--forest); border-radius: 999px; background: var(--button); color: var(--button-text); font-size: 13px; font-weight: 700; text-decoration: none; transition: background 150ms ease, transform 150ms ease; }
+.agrishift-landing .button:hover { background: var(--button-hover); transform: translateY(-1px); }
+.agrishift-landing .header-cta { min-height: 44px; }
+.agrishift-landing .mobile-navigation { display: none; }
+.agrishift-landing .hero { position: relative; background: radial-gradient(ellipse at 76% 48%, rgb(59 145 100 / 18%), transparent 48%), var(--paper); }
+.agrishift-landing .hero-inner { display: grid; width: min(100% - 64px, 1420px); min-height: 452px; grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr); align-items: center; gap: 18px; margin-inline: auto; padding-block: 34px 30px; }
+.agrishift-landing .hero-copy { position: relative; z-index: 2; max-width: 650px; padding-block: 18px; }
+.agrishift-landing .eyebrow, .agrishift-landing .cta-eyebrow { margin: 0; color: var(--forest); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.agrishift-landing .hero-title { max-width: 700px; margin: 22px 0 0; color: var(--ink); font-size: clamp(54px, 5.2vw, 78px); font-weight: 800; line-height: .98; letter-spacing: -.055em; }
+.agrishift-landing .hero-title > span { display: block; }
+.agrishift-landing .title-period { color: var(--amber); }
+.agrishift-landing .hero-description { max-width: 610px; margin: 21px 0 0; color: var(--subtle); font-size: clamp(16px, 1.55vw, 21px); line-height: 1.45; }
+.agrishift-landing .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 23px; }
+.agrishift-landing .primary-button { min-height: 46px; }
+.agrishift-landing .secondary-button { display: inline-flex; min-height: 46px; align-items: center; gap: 10px; padding: 0 17px; border: 1px solid var(--forest); border-radius: 999px; color: var(--ink); font-size: 13px; font-weight: 650; text-decoration: none; transition: background 150ms ease; }
+.agrishift-landing .secondary-button:hover { background: var(--surface); }
+.agrishift-landing .play-icon { display: grid; width: 22px; height: 22px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-size: 9px; }
+.agrishift-landing .hero-footnote { display: flex; align-items: center; gap: 9px; margin: 19px 0 0; color: var(--muted); font-size: 12px; }
+.agrishift-landing .hero-footnote svg { width: 19px; height: 19px; fill: var(--leaf); stroke: var(--leaf); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.agrishift-landing .hero-visual { position: relative; width: 100%; height: 416px; margin: 0; }
+.agrishift-landing .hero-globe { width: 100%; height: 100%; object-fit: contain; object-position: center; }
+.agrishift-landing .hero-caption { position: absolute; right: 12px; bottom: 1px; color: var(--muted); font-size: 10px; }
+.agrishift-landing .capability-band { border-block: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 44%, transparent); }
+.agrishift-landing .capability-inner { display: grid; width: min(100% - 64px, 1320px); grid-template-columns: repeat(3, minmax(0, 1fr)); margin-inline: auto; }
+.agrishift-landing .capability { display: flex; min-height: 86px; align-items: center; gap: 22px; padding: 12px clamp(16px, 3.2vw, 48px); }
+.agrishift-landing .capability + .capability { border-left: 1px solid var(--line); }
+.agrishift-landing .capability-icon { display: grid; width: 56px; height: 56px; flex: 0 0 auto; place-items: center; border: 1px solid color-mix(in srgb, var(--leaf) 50%, var(--line)); border-radius: 50%; background: color-mix(in srgb, var(--leaf) 12%, var(--surface)); color: var(--forest); }
+.agrishift-landing .capability-icon svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.agrishift-landing .capability h2, .agrishift-landing .workflow-step h2 { margin: 0; color: var(--ink); font-size: 16px; font-weight: 750; line-height: 1.3; }
+.agrishift-landing .capability p, .agrishift-landing .workflow-step p { margin: 4px 0 0; color: var(--subtle); font-size: 13px; line-height: 1.4; }
+.agrishift-landing .workflow { background: var(--paper); }
+.agrishift-landing .workflow-inner { display: grid; width: min(100% - 64px, 1290px); grid-template-columns: repeat(3, minmax(0, 1fr)); margin-inline: auto; padding-block: 16px; }
+.agrishift-landing .workflow-step { position: relative; display: flex; min-height: 76px; align-items: center; gap: 17px; padding: 10px 24px 10px 0; }
+.agrishift-landing .workflow-step + .workflow-step { padding-left: 24px; }
+.agrishift-landing .workflow-step + .workflow-step::before { position: absolute; top: 50%; left: -12px; width: 24px; height: 1px; background: color-mix(in srgb, var(--leaf) 45%, var(--line)); content: ""; }
+.agrishift-landing .step-number { display: grid; width: 48px; height: 48px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--leaf) 22%, var(--surface)); color: var(--mint); font-size: 19px; font-weight: 750; }
+.agrishift-landing .data-section { width: min(100% - 64px, 1420px); margin: 0 auto; padding-block: 25px 20px; }
+.agrishift-landing .data-heading { display: flex; align-items: end; justify-content: space-between; gap: 30px; margin-bottom: 16px; }
+.agrishift-landing .data-title-group { display: flex; align-items: center; gap: 14px; }
+.agrishift-landing .nasa-logo { display: block; width: 62px; height: 62px; flex: 0 0 auto; padding: 6px; border: 1px solid var(--line); border-radius: 50%; background: #fff; object-fit: contain; }
+.agrishift-landing .data-heading h2 { margin: 6px 0 0; color: var(--ink); font-size: clamp(24px, 2.8vw, 34px); font-weight: 750; letter-spacing: -.035em; }
+.agrishift-landing .data-eyebrow { margin: 0; color: var(--forest); font-size: 10px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+.agrishift-landing .data-heading > p { max-width: 520px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.agrishift-landing .data-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--panel) 90%, transparent); overflow: hidden; }
+.agrishift-landing .data-card { min-width: 0; padding: 15px 16px 14px; }
+.agrishift-landing .data-card + .data-card { border-left: 1px solid var(--line); }
+.agrishift-landing .source-number { color: var(--leaf); font-size: 10px; font-weight: 750; letter-spacing: .1em; }
+.agrishift-landing .data-card h3 { margin: 8px 0 0; color: var(--ink); font-size: 14px; font-weight: 750; }
+.agrishift-landing .data-card p { min-height: 34px; margin: 5px 0 0; color: var(--subtle); font-size: 11px; line-height: 1.5; }
+.agrishift-landing .data-card small { display: block; margin-top: 9px; color: var(--muted); font-size: 9px; line-height: 1.4; overflow-wrap: anywhere; }
+.agrishift-landing .disclaimer { margin: 10px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.agrishift-landing .cta-section { position: relative; display: flex; min-height: 178px; flex-direction: column; align-items: center; justify-content: center; gap: 10px; overflow: hidden; padding: 25px 24px 30px; text-align: center; }
+.agrishift-landing .cta-section::before, .agrishift-landing .cta-section::after { position: absolute; z-index: 0; bottom: -132px; width: 390px; height: 230px; border: 1px solid color-mix(in srgb, var(--leaf) 24%, transparent); border-radius: 50%; content: ""; pointer-events: none; }
+.agrishift-landing .cta-section::before { left: -80px; box-shadow: 0 -12px 0 -1px var(--paper), 0 -13px 0 0 color-mix(in srgb, var(--leaf) 22%, transparent), 0 -25px 0 -1px var(--paper), 0 -26px 0 0 color-mix(in srgb, var(--leaf) 20%, transparent), 0 -38px 0 -1px var(--paper), 0 -39px 0 0 color-mix(in srgb, var(--leaf) 18%, transparent), 0 -51px 0 -1px var(--paper), 0 -52px 0 0 color-mix(in srgb, var(--leaf) 16%, transparent); }
+.agrishift-landing .cta-section::after { right: -80px; box-shadow: 0 -12px 0 -1px var(--paper), 0 -13px 0 0 color-mix(in srgb, var(--leaf) 22%, transparent), 0 -25px 0 -1px var(--paper), 0 -26px 0 0 color-mix(in srgb, var(--leaf) 20%, transparent), 0 -38px 0 -1px var(--paper), 0 -39px 0 0 color-mix(in srgb, var(--leaf) 18%, transparent), 0 -51px 0 -1px var(--paper), 0 -52px 0 0 color-mix(in srgb, var(--leaf) 16%, transparent); }
+.agrishift-landing .cta-section > * { position: relative; z-index: 1; }
+.agrishift-landing .cta-eyebrow { font-size: 10px; letter-spacing: .12em; }
+.agrishift-landing .cta-section h2 { max-width: 860px; margin: 0; color: var(--ink); font-size: clamp(26px, 3vw, 39px); font-weight: 750; letter-spacing: -.025em; line-height: 1.15; }
+.agrishift-landing .cta-section > p:not(.cta-eyebrow) { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.agrishift-landing .cta-button { min-height: 43px; margin-top: 3px; }
+.agrishift-landing .footer { display: grid; width: min(100% - 64px, 1420px); grid-template-columns: auto minmax(190px, 1fr) auto; align-items: center; gap: 20px 34px; margin-inline: auto; padding-block: 17px 19px; border-top: 1px solid var(--line); }
+.agrishift-landing .footer-brand { gap: 9px; font-size: 14px; }
+.agrishift-landing .footer-brand img { width: 42px; height: 38px; object-fit: contain; }
+.agrishift-landing .footer > p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.agrishift-landing .footer nav { display: flex; flex-wrap: wrap; gap: 20px; }
+.agrishift-landing .footer nav a { font-size: 12px; }
+.agrishift-landing .footer .footer-note { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--line); font-size: 10px; font-style: italic; text-align: center; }
+.agrishift-landing .footer-note span { margin-left: 10px; }
+@media (max-width: 1080px) {
+.agrishift-landing .header-inner, .agrishift-landing .hero-inner, .agrishift-landing .capability-inner, .agrishift-landing .workflow-inner, .agrishift-landing .data-section, .agrishift-landing .footer { width: min(100% - 44px, 940px); }
+.agrishift-landing .header-inner { gap: 18px; }
+.agrishift-landing .brand { font-size: 16px; }
+.agrishift-landing .desktop-nav { gap: 16px; }
+.agrishift-landing .desktop-nav a { font-size: 12px; }
+.agrishift-landing .header-cta { min-height: 42px; padding-inline: 14px; font-size: 12px; }
+.agrishift-landing .data-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.agrishift-landing .data-card:nth-child(4) { border-left: 0; }
+.agrishift-landing .data-card:nth-child(n + 4) { border-top: 1px solid var(--line); }
+.agrishift-landing .hero-inner { min-height: 420px; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); }
+.agrishift-landing .hero-title { font-size: clamp(50px, 6vw, 68px); }
+.agrishift-landing .hero-visual { height: 370px; }
+.agrishift-landing .capability { gap: 14px; padding-inline: 16px; }
+.agrishift-landing .capability h2 { font-size: 14px; }
+.agrishift-landing .workflow-step { gap: 12px; }
+.agrishift-landing .workflow-step + .workflow-step { padding-left: 16px; }
+}
+@media (max-width: 760px) {
+.agrishift-landing .header-inner { width: min(100% - 32px, 680px); min-height: 68px; gap: 10px; }
+.agrishift-landing .brand { gap: 7px; font-size: 15px; }
+.agrishift-landing .brand-mark { width: 44px; height: 42px; }
+.agrishift-landing .desktop-nav, .agrishift-landing .header-cta { display: none; }
+.agrishift-landing .header-actions { gap: 8px; }
+.agrishift-landing .theme-toggle { width: 40px; height: 40px; }
+.agrishift-landing .mobile-navigation { position: relative; display: block; }
+.agrishift-landing .mobile-navigation summary { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--line); border-radius: 12px; color: var(--forest); list-style: none; cursor: pointer; }
+.agrishift-landing .mobile-navigation summary::-webkit-details-marker { display: none; }
+.agrishift-landing .mobile-navigation summary svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2; }
+.agrishift-landing .mobile-menu-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; display: grid; width: min(300px, calc(100vw - 32px)); gap: 2px; padding: 9px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: 0 18px 42px rgb(0 0 0 / 32%); }
+.agrishift-landing .mobile-menu-panel a { padding: 12px; border-radius: 9px; color: var(--ink); font-size: 13px; text-decoration: none; }
+.agrishift-landing .mobile-menu-panel a:hover { background: var(--surface); }
+.agrishift-landing .mobile-menu-panel .mobile-menu-cta { justify-content: space-between; margin-top: 5px; color: var(--button-text); }
+.agrishift-landing .hero-inner { display: flex; width: min(100% - 36px, 680px); min-height: 0; flex-direction: column; align-items: stretch; gap: 0; padding-block: 38px 22px; }
+.agrishift-landing .hero-copy { padding: 0; }
+.agrishift-landing .eyebrow { font-size: 10px; letter-spacing: .025em; }
+.agrishift-landing .hero-title { margin-top: 16px; font-size: clamp(47px, 12vw, 68px); line-height: 1; }
+.agrishift-landing .hero-description { max-width: 560px; margin-top: 16px; font-size: 16px; line-height: 1.55; }
+.agrishift-landing .hero-actions { gap: 10px; margin-top: 19px; }
+.agrishift-landing .primary-button, .agrishift-landing .secondary-button { min-height: 44px; padding-inline: 13px; font-size: 12px; }
+.agrishift-landing .hero-footnote { margin-top: 14px; font-size: 10px; }
+.agrishift-landing .hero-visual { height: min(68vw, 360px); min-height: 230px; margin-top: 7px; }
+.agrishift-landing .hero-caption { right: 0; bottom: 0; font-size: 8px; }
+.agrishift-landing .capability-inner { width: min(100% - 36px, 680px); grid-template-columns: 1fr; padding-block: 8px; }
+.agrishift-landing .capability { min-height: 70px; padding: 9px 5px; }
+.agrishift-landing .capability + .capability { border-top: 1px solid var(--line); border-left: 0; }
+.agrishift-landing .capability-icon { width: 48px; height: 48px; }
+.agrishift-landing .workflow-inner { width: min(100% - 36px, 680px); grid-template-columns: 1fr; padding-block: 9px; }
+.agrishift-landing .workflow-step, .agrishift-landing .workflow-step + .workflow-step { min-height: 70px; gap: 15px; padding: 10px 0; }
+.agrishift-landing .workflow-step + .workflow-step::before { display: none; }
+.agrishift-landing .workflow-step + .workflow-step { border-top: 1px solid var(--line); }
+.agrishift-landing .step-number { width: 43px; height: 43px; font-size: 17px; }
+.agrishift-landing .data-section { width: min(100% - 32px, 680px); padding-block: 9px 12px; }
+.agrishift-landing .data-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+.agrishift-landing .nasa-logo { width: 52px; height: 52px; padding: 5px; }
+.agrishift-landing .data-heading > p { font-size: 12px; }
+.agrishift-landing .data-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.agrishift-landing .data-card { padding: 13px; }
+.agrishift-landing .data-card:nth-child(odd) { border-left: 0; }
+.agrishift-landing .data-card:nth-child(4) { border-left: 1px solid var(--line); }
+.agrishift-landing .data-card:nth-child(n + 3) { border-top: 1px solid var(--line); }
+.agrishift-landing .data-card:last-child { grid-column: 1 / -1; border-left: 0; }
+.agrishift-landing .data-card h3 { font-size: 13px; }
+.agrishift-landing .data-card p { min-height: 30px; font-size: 10px; }
+.agrishift-landing .data-card small { font-size: 8px; }
+.agrishift-landing .disclaimer { font-size: 9px; }
+.agrishift-landing .cta-section { min-height: 200px; gap: 9px; padding-inline: 22px; }
+.agrishift-landing .cta-eyebrow { font-size: 9px; }
+.agrishift-landing .cta-section h2 { font-size: clamp(27px, 7vw, 36px); }
+.agrishift-landing .cta-section > p:not(.cta-eyebrow) { max-width: 500px; font-size: 13px; }
+.agrishift-landing .cta-button { min-height: 43px; padding-inline: 14px; font-size: 12px; }
+.agrishift-landing .footer { width: min(100% - 36px, 680px); grid-template-columns: 1fr; gap: 11px; padding-block: 16px 18px; }
+.agrishift-landing .footer-brand { font-size: 13px; }
+.agrishift-landing .footer > p { font-size: 10px; }
+.agrishift-landing .footer nav { gap: 16px; }
+.agrishift-landing .footer nav a { font-size: 11px; }
+.agrishift-landing .footer .footer-note { padding-top: 11px; font-size: 9px; text-align: left; }
+.agrishift-landing .footer-note span { display: block; margin: 4px 0 0; }
+}
+@media (max-width: 420px) {
+.agrishift-landing .header-inner { width: calc(100% - 24px); }
+.agrishift-landing .brand { font-size: 13px; }
+.agrishift-landing .brand-mark { width: 40px; height: 38px; }
+.agrishift-landing .hero-inner { width: calc(100% - 28px); }
+.agrishift-landing .hero-actions { align-items: stretch; flex-direction: column; }
+.agrishift-landing .primary-button, .agrishift-landing .secondary-button { justify-content: center; }
+}
+
+/* Light-theme step numbers: dark green on pale green, as in the design */
+.agrishift-landing[data-theme="light"] .step-number { color: var(--forest); }
+
+/* Restore the original static page's typography and element defaults, undoing Tailwind's preflight inside the landing page only */
+.agrishift-landing {
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: normal;
+}
+.agrishift-landing img,
+.agrishift-landing svg {
+  display: revert;
+  vertical-align: revert;
+  max-width: revert;
+  height: revert;
+}
+.agrishift-landing img.brand-mark,
+.agrishift-landing img.hero-globe,
+.agrishift-landing img.nasa-logo,
+.agrishift-landing .footer-brand img {
+  display: block;
+}
+.agrishift-landing .hero-globe { display: block; }
+.agrishift-landing .capability-icon svg,
+.agrishift-landing .theme-toggle svg,
+.agrishift-landing .mobile-navigation summary svg,
+.agrishift-landing .hero-footnote svg {
+  display: block;
+}
+
+/* Tablet: the full nav no longer fits beside the logo and CTA, so use the hamburger menu below 1000px */
+@media (max-width: 1000px) {
+  .agrishift-landing .desktop-nav,
+  .agrishift-landing .header-cta { display: none; }
+  .agrishift-landing .mobile-navigation { position: relative; display: block; }
+  .agrishift-landing .mobile-navigation summary { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--line); border-radius: 12px; color: var(--forest); list-style: none; cursor: pointer; }
+  .agrishift-landing .mobile-navigation summary::-webkit-details-marker { display: none; }
+  .agrishift-landing .mobile-navigation summary svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2; }
+  .agrishift-landing .mobile-menu-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; display: grid; width: min(300px, calc(100vw - 32px)); gap: 2px; padding: 9px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: 0 18px 42px rgb(0 0 0 / 32%); }
+  .agrishift-landing .mobile-menu-panel a { padding: 12px; border-radius: 9px; color: var(--ink); font-size: 13px; text-decoration: none; }
+  .agrishift-landing .mobile-menu-panel a:hover { background: var(--surface); }
+  .agrishift-landing .mobile-menu-panel .mobile-menu-cta { justify-content: space-between; margin-top: 5px; color: var(--button-text); }
+}
+
+/* Sign in / Register links in the header */
+.agrishift-landing .auth-link,
+.agrishift-landing .auth-register {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+.agrishift-landing .auth-link { color: var(--ink); }
+.agrishift-landing .auth-link:hover { background: var(--surface); }
+.agrishift-landing .auth-register { border: 1px solid var(--forest); color: var(--forest); }
+.agrishift-landing .auth-register:hover { background: var(--surface); }
+@media (max-width: 1000px) {
+  .agrishift-landing .auth-link, .agrishift-landing .auth-register { display: none; }
+}

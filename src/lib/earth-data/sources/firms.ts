@@ -66,7 +66,7 @@ export async function fetchFirmsObservations(query: PointQuery): Promise<Observa
 
   let response: Response;
   try {
-    response = await fetchWithTimeout(url, { cache: 'no-store' });
+    response = await fetchWithTimeout(url, { cache: 'no-store', signal: query.signal });
   } catch {
     throw new UpstreamError('NASA FIRMS could not be reached. Check the network and retry.', 502, 'firms');
   }

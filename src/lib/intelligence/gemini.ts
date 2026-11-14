@@ -1,6 +1,7 @@
 import 'server-only';
 
 import type { GroundedAssistantContext } from './context';
+import type { AgriculturalAssessment } from '@/lib/agriculture/assessment';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.6-flash';
 const geminiGenerateContentUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -50,6 +51,7 @@ function systemInstruction(): string {
     'Avoid numbered reports, long technical caveats, coordinates in the prose, product identifiers, variable codes, internal retrieval states, and raw API errors. Prefer terms such as NASA weather readings over internal product names unless the user asks for technical detail. Do not add general agricultural advice unless the question asks what the measurements mean; if you do, label it as general guidance.',
     'Clearly separate measured facts, interpretation, and cautious general agricultural guidance; label general knowledge and never use it to imply a local measurement. Explain which source and dates support key claims; identify uncertainty and insufficient evidence. Correlation is not causation.',
     'Do not give unsupported crop recommendations, yield predictions, or definitive climate-risk conclusions.',
+    'When agricultural screening context is supplied, use it as a transparent rule-based screen. Explain its assumptions and limitations, and do not upgrade uncertain or not-in-window crops into recommendations.',
     'If the selected point is outside Nigeria, never describe it as a Nigerian observation.',
     'Answer concisely in plain language. If the question cannot be answered from the available evidence, say so and explain what is missing without listing backend failures.',
   ].join(' ');
@@ -59,11 +61,15 @@ function modelInput(
   question: string,
   history: AssistantTurn[],
   context: GroundedAssistantContext,
+  agriculture?: AgriculturalAssessment,
 ): string {
   return [
     `Current user question:\n${question}`,
     `Recent conversation (dialogue only, not verified evidence):\n${JSON.stringify(history)}`,
     `Server-verified observation context (the only local evidence; source observations retain separate coordinates and metadata):\n${JSON.stringify(context)}`,
+    agriculture
+      ? `Server-generated agricultural screening context (calendar and rule-based interpretation; not a yield prediction):\n${JSON.stringify(agriculture)}`
+      : 'No agricultural screening context was generated for this request.',
   ].join('\n\n');
 }
 
@@ -103,6 +109,7 @@ export async function generateGroundedAnswer(
   question: string,
   history: AssistantTurn[],
   context: GroundedAssistantContext,
+  agriculture?: AgriculturalAssessment,
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
@@ -129,7 +136,7 @@ export async function generateGroundedAnswer(
         contents: [
           {
             role: 'user',
-            parts: [{ text: modelInput(question, history, context) }],
+            parts: [{ text: modelInput(question, history, context, agriculture) }],
           },
         ],
       }),

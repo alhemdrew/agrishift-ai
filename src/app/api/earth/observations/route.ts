@@ -1,12 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { sourceById } from '@/lib/earth-data/catalog';
-import { fetchObservationHub } from '@/lib/earth-data/hub';
-import { fetchFirmsObservations } from '@/lib/earth-data/sources/firms';
-import { fetchGpmObservations } from '@/lib/earth-data/sources/gpm';
-import { fetchModisObservations } from '@/lib/earth-data/sources/modis';
-import { fetchPowerObservations } from '@/lib/earth-data/sources/power';
-import { fetchSmapObservations } from '@/lib/earth-data/sources/smap';
+import { fetchObservationHub, fetchObservationSource } from '@/lib/earth-data/hub';
 import { UpstreamError, type PointQuery, type SourceId } from '@/lib/earth-data/types';
 
 export const runtime = 'nodejs';
@@ -23,11 +18,13 @@ interface ObservationRequest {
 }
 
 function isIsoDate(value: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
 }
 
 function validateRequest(body: ObservationRequest): { sourceId: SourceId | 'all'; query: PointQuery } {
-  if (!body.sourceId || (body.sourceId !== 'all' && !(body.sourceId in sourceById))) {
+  if (!body.sourceId || (body.sourceId !== 'all' && !Object.hasOwn(sourceById, body.sourceId))) {
     throw new UpstreamError('Select one of the configured Earth observation sources.', 400, 'power');
   }
   const sourceId = body.sourceId === 'all' ? 'all' : body.sourceId as SourceId;
@@ -64,15 +61,12 @@ export async function POST(request: Request) {
     if (sourceId === 'all') {
       return NextResponse.json(await fetchObservationHub(query, body.taskIds));
     }
-    const result = sourceId === 'power'
-      ? await fetchPowerObservations(query)
-      : sourceId === 'gpm'
-        ? await fetchGpmObservations(query, body.taskId)
-        : sourceId === 'smap'
-          ? await fetchSmapObservations(query, body.variable === 'rootzone' ? 'rootzone' : 'surface', body.taskId)
-          : sourceId === 'modis'
-            ? await fetchModisObservations(query, body.taskId)
-            : await fetchFirmsObservations(query);
+    const result = await fetchObservationSource(
+      sourceId,
+      query,
+      body.taskId,
+      body.variable === 'rootzone' ? 'rootzone' : 'surface',
+    );
 
     return NextResponse.json(result, { status: result.status === 'processing' ? 202 : 200 });
   } catch (error) {

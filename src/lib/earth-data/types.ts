@@ -9,12 +9,35 @@ export type RetrievalStatus =
   | 'timeout'
   | 'error';
 export type SourceAvailability = 'operational' | 'partially_operational' | 'unavailable';
+export type ProviderHealthStatus = 'healthy' | 'degraded' | 'pending' | 'unavailable' | 'not_configured';
+
+export interface ProviderDiagnostic {
+  providerName: string;
+  status: ProviderHealthStatus;
+  lastSuccessfulRetrieval: string | null;
+  latestObservationTime: string | null;
+  observationPeriod: { start: string; end: string } | null;
+  taskId: string | null;
+  observationCount: number;
+  latestObservations: Array<{
+    variable: string;
+    value: number | string;
+    unit: string;
+    observationTime: string;
+  }>;
+  attribution: string;
+  retrievalDurationMs: number | null;
+  errorCategory: 'credentials' | 'agreement' | 'rate_limit' | 'timeout' | 'provider' | 'request' | 'empty' | null;
+  message: string;
+  dataOrigin: 'genuine_provider' | 'none';
+}
 
 export interface PointQuery {
   latitude: number;
   longitude: number;
   startDate: string;
   endDate: string;
+  signal?: AbortSignal;
 }
 
 export interface Observation {
@@ -58,6 +81,7 @@ export interface SourceHubEntry {
   durationMs?: number;
   result?: ObservationResult;
   error?: { status: number; message: string };
+  diagnostic?: ProviderDiagnostic;
 }
 
 export interface ObservationHubResult {

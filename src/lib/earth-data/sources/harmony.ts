@@ -73,6 +73,15 @@ async function throwHarmonyResponseError(response: Response, sourceId: 'gpm' | '
     await response.body?.cancel();
   }
 
+  if (/no matching granules/i.test(description)) {
+    throw new UpstreamError(
+      'NASA Harmony completed the query but found no granules for this location and period.',
+      404,
+      sourceId,
+      'empty',
+    );
+  }
+
   const dataServiceStatus = description.match(/\b(401|403|404|429|5\d\d)\s+error retrieving\b/i)?.[1];
   if (dataServiceStatus) {
     const agreementRequired = sourceId === 'gpm' && dataServiceStatus === '403';
@@ -164,6 +173,7 @@ async function fetchJobObservations(
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       redirect: 'manual',
       cache: 'no-store',
+      signal: query.signal,
     });
   } catch {
     throw new UpstreamError('NASA Harmony job status could not be retrieved. Retry the request.', 502, query.sourceId);
@@ -205,6 +215,7 @@ async function fetchJobObservations(
         headers: { Authorization: `Bearer ${token}`, Accept: 'image/tiff' },
         redirect: 'follow',
         cache: 'no-store',
+        signal: query.signal,
       });
     } catch {
       throw new UpstreamError('NASA Harmony result data could not be downloaded. Retry the request.', 502, query.sourceId);
@@ -266,6 +277,7 @@ export async function fetchHarmonyPointRaster(
       headers: { Authorization: `Bearer ${token}`, Accept: 'image/tiff' },
       redirect: 'manual',
       cache: 'no-store',
+      signal: query.signal,
     });
   } catch {
     throw new UpstreamError('NASA Harmony could not be reached. Check the network and retry.', 502, query.sourceId);
@@ -283,6 +295,7 @@ export async function fetchHarmonyPointRaster(
     throwAuthorizationError(response.status, query.sourceId);
   }
 
+  if ([401, 403].includes(response.status)) throwAuthorizationError(response.status, query.sourceId);
   if (!response.ok) return throwHarmonyResponseError(response, query.sourceId);
   if (!response.headers.get('content-type')?.toLowerCase().includes('tiff')) {
     await response.body?.cancel();
