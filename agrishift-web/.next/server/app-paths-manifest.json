@@ -1,0 +1,8 @@
+{
+  "/explore/page": "app/explore/page.js",
+  "/page": "app/page.js",
+  "/app/intelligence/page": "app/app/intelligence/page.js",
+  "/app/assistant/page": "app/app/assistant/page.js",
+  "/app/reports/create/page": "app/app/reports/create/page.js",
+  "/app/layers/page": "app/app/layers/page.js"
+}

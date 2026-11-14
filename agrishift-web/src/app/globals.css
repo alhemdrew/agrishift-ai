@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply bg-brand-50 text-brand-900 dark:bg-brand-950 dark:text-brand-100;
+  }
+}

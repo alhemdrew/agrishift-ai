@@ -1,0 +1,15 @@
+{
+  "..\\node_modules\\next\\dist\\client\\components\\react-dev-overlay\\internal\\helpers\\use-websocket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts": {
+    "id": "..\\node_modules\\next\\dist\\client\\components\\react-dev-overlay\\internal\\helpers\\use-websocket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js"
+    ]
+  },
+  "components\\explore\\explore-client.tsx -> ./explore-map": {
+    "id": "components\\explore\\explore-client.tsx -> ./explore-map",
+    "files": [
+      "static/css/_app-pages-browser_src_components_explore_explore-map_tsx.css",
+      "static/chunks/_app-pages-browser_src_components_explore_explore-map_tsx.js"
+    ]
+  }
+}
