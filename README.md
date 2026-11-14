@@ -1,6 +1,6 @@
 # AGRISHIFT AI
 
-### From Earth observations to smarter agricultural decisions.
+### From earth observations to smarter agricultural decisions.
 
 **Turning satellite intelligence into actionable insights for agriculture.**
 
