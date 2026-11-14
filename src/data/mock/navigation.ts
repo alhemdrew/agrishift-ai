@@ -29,6 +29,11 @@ export const workspaceNavItems: WorkspaceNavItem[] = [
 
 export const advancedWorkspaceNavItems: WorkspaceNavItem[] = [
   {
+    href: '/intelligence',
+    label: 'Intelligence dashboard',
+    description: 'Live environmental signals and source status',
+  },
+  {
     href: '/layers',
     label: 'Environmental layers',
     description: 'Satellite imagery and map overlays',
