@@ -46,10 +46,14 @@ The platform brings together environmental datasets from multiple Earth observat
 | **Earth Explorer** | Explore geographic locations and retrieve environmental observations for selected coordinates. |
 | **Satellite Intelligence** | Access environmental information from multiple Earth observation datasets. |
 | **Agricultural Insights** | Translate environmental observations into understandable agricultural context. |
-| **AI Assistant** | Ask questions about environmental conditions and receive context-aware explanations. |
+| **AI Assistant** | Ask questions about environmental conditions in English, Hausa, Yoruba, or Igbo and receive context-aware explanations. Optional voice input and spoken responses use browser speech capabilities when available. |
 | **Environmental Layers** | Explore available geospatial and environmental data layers. |
 | **Location Intelligence** | Search for locations and use geographic coordinates as the basis for analysis. |
 | **Data Provenance** | Preserve information about data sources, timestamps, units, and availability. |
+
+### Assistant languages and voice
+
+The assistant sends the selected response language (English, Hausa, Yoruba, or Igbo) to the existing observation-grounded Gemini workflow. The response-language choice controls generated text independently of speech support. Browser speech recognition requests `en-US`, `ha-NG`, `yo-NG`, or `ig-NG`, but assigning a locale does not guarantee that the browser's recognition service supports that language or recognizes it accurately; review and edit transcripts before sending. Spoken responses use only an installed voice matching the selected language. Voice availability can vary by device and may be reported asynchronously. If speech input or a matching voice is unavailable, text chat and written answers remain available. The browser's speech service handles microphone audio; AgriShift receives the editable transcript only when the user sends it and does not store raw recordings.
 
 ## The Platform
 
@@ -333,7 +337,7 @@ AgriShift AI is being developed as an extensible agricultural intelligence platf
 | Earth Observation | Improve reliability and coverage across all integrated providers. |
 | Geospatial Explorer | Expand location-based exploration and environmental visualization. |
 | Agricultural Intelligence | Develop more contextual and useful agricultural insights. |
-| AI Assistant | Improve grounded reasoning, multilingual support, and uncertainty communication. |
+| AI Assistant | Improve grounded reasoning, multilingual response quality, and uncertainty communication. |
 | Data Visualization | Expand interactive environmental dashboards and map layers. |
 | Accessibility | Make satellite-derived information easier to understand and use. |
 | Global Coverage | Extend beyond initial Nigerian pilot locations. |

@@ -1,14 +1,25 @@
 import { NextResponse } from 'next/server';
 
 import { POST as assistantPost } from '@/app/api/assistant/route';
+import {
+  DEFAULT_ASSISTANT_LANGUAGE,
+  type AssistantLanguage,
+} from '@/lib/assistant/languages';
 
 export async function POST(request: Request) {
-  const body = await request.json() as { message?: string; lat?: number; lon?: number; history?: Array<{ role: 'user' | 'assistant'; text: string }> };
+  const body = await request.json() as {
+    message?: string;
+    language?: AssistantLanguage;
+    lat?: number;
+    lon?: number;
+    history?: Array<{ role: 'user' | 'assistant'; text: string }>;
+  };
   const response = await assistantPost(new Request(request.url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       question: body.message,
+      language: body.language ?? DEFAULT_ASSISTANT_LANGUAGE,
       location: { name: 'Selected location', latitude: body.lat, longitude: body.lon },
       period: { start: new Date(Date.now() - 5 * 86400000).toISOString().slice(0, 10), end: new Date(Date.now() - 86400000).toISOString().slice(0, 10) },
       history: (body.history ?? []).map((turn) => ({ role: turn.role, content: turn.text })),

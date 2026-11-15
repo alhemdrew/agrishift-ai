@@ -16,6 +16,11 @@ import {
   GeminiServiceError,
   type AssistantTurn,
 } from '@/lib/intelligence/gemini';
+import {
+  DEFAULT_ASSISTANT_LANGUAGE,
+  isAssistantLanguage,
+  type AssistantLanguage,
+} from '@/lib/assistant/languages';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -29,6 +34,7 @@ const globalRequestCount = { count: 0, resetAt: 0 };
 
 interface AssistantRequest {
   question: string;
+  language: AssistantLanguage;
   location: SelectedLocation;
   period: { start: string; end: string };
   history: AssistantTurn[];
@@ -49,11 +55,15 @@ function isIsoDate(value: string): boolean {
 }
 
 function validateRequest(value: unknown): AssistantRequest | string {
-  if (!isRecord(value) || !hasOnlyKeys(value, ['question', 'location', 'period', 'history'])) {
-    return 'Request must contain only question, location, period, and history. Observation data is retrieved by the server.';
+  if (!isRecord(value) || !hasOnlyKeys(value, ['question', 'language', 'location', 'period', 'history'])) {
+    return 'Request must contain only question, language, location, period, and history. Observation data is retrieved by the server.';
   }
   if (typeof value.question !== 'string' || value.question.trim().length < 2 || value.question.length > 1_000) {
     return 'Enter a question between 2 and 1,000 characters.';
+  }
+  const language = value.language === undefined ? DEFAULT_ASSISTANT_LANGUAGE : value.language;
+  if (!isAssistantLanguage(language)) {
+    return 'Choose English, Hausa, Yoruba, or Igbo.';
   }
   if (!isRecord(value.location) || !hasOnlyKeys(value.location, ['name', 'latitude', 'longitude'])) {
     return 'Provide a location name and coordinates.';
@@ -100,6 +110,7 @@ function validateRequest(value: unknown): AssistantRequest | string {
 
   return {
     question: value.question.trim(),
+    language,
     location: { name: name.trim(), latitude, longitude },
     period: { start, end },
     history,
@@ -251,7 +262,13 @@ export async function POST(request: Request) {
       validated.location.latitude,
       validated.location.longitude,
     );
-    const answer = await generateGroundedAnswer(validated.question, validated.history, context, agriculture);
+    const answer = await generateGroundedAnswer(
+      validated.question,
+      validated.history,
+      context,
+      agriculture,
+      validated.language,
+    );
     const geminiDurationMs = Date.now() - geminiStartedAt;
 
     return NextResponse.json({

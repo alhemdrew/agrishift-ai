@@ -2,14 +2,29 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CloudRain, ExternalLink, Globe2, Maximize2, MapPin, MessageSquare, Plus, Send, Sparkles, AlertTriangle, Info } from "lucide-react";
+import { ArrowRight, CloudRain, ExternalLink, Globe2, Maximize2, MapPin, MessageSquare, Plus, Send, Sparkles, AlertTriangle, Info, Mic, Pause, Play, Square, Volume2, VolumeX } from "lucide-react";
 import { PageHero } from "@/components/app/page-hero";
+import {
+  ASSISTANT_LANGUAGES,
+  DEFAULT_ASSISTANT_LANGUAGE,
+  type AssistantLanguage,
+} from "@/lib/assistant/languages";
+import {
+  recognitionErrorMessage,
+  recognitionLocale,
+  speechTranscript,
+  speechLocale,
+  speechRecognitionConstructor,
+  waitForMatchingSpeechVoice,
+  type SpeechRecognitionLike,
+  type SpeechRecognitionWindow,
+} from "@/lib/assistant/speech";
 
 const API_URL = "";
 
 type Chart = { title: string; unit: string; labels: string[]; values: number[] };
 type Reply = { answer: string; key_insights: string[]; uncertainty: string; suggested_questions: string[]; chart: Chart | null; source: string };
-type Message = { id: number; role: "user" | "assistant"; text: string; time: string; reply?: Reply; error?: boolean };
+type Message = { id: number; role: "user" | "assistant"; text: string; time: string; reply?: Reply; error?: boolean; language?: AssistantLanguage };
 
 const STYLES = `
 @keyframes as-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
@@ -53,8 +68,13 @@ function Typewriter({ text }: { text: string }) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     setCount(0);
-    const step = Math.max(1, Math.ceil(text.length / 160));
-    const id = setInterval(() => setCount((c) => Math.min(text.length, c + step)), 16);
+    const duration = Math.min(1_600, Math.max(240, text.length * 3));
+    const startedAt = Date.now();
+    const id = setInterval(() => {
+      const progress = Math.min(1, (Date.now() - startedAt) / duration);
+      setCount(Math.ceil(text.length * progress));
+      if (progress === 1) clearInterval(id);
+    }, 16);
     return () => clearInterval(id);
   }, [text]);
   return (
@@ -122,15 +142,187 @@ export function AssistantClient({ lat, lon }: { lat: string; lon: string }) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [openSources, setOpenSources] = useState<number | null>(null);
+  const [language, setLanguage] = useState<AssistantLanguage>(DEFAULT_ASSISTANT_LANGUAGE);
+  const [speechRecognitionAvailable, setSpeechRecognitionAvailable] = useState(false);
+  const [speechEnabled, setSpeechEnabled] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [speechNotice, setSpeechNotice] = useState("");
+  const [playback, setPlayback] = useState<{ messageId: number; state: "playing" | "paused" } | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const recognitionTextRef = useRef("");
+  const recognitionErrorRef = useRef(false);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const speechRequestRef = useRef(0);
+  const mountedRef = useRef(false);
+  const busyRef = useRef(false);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, busy]);
 
+  useEffect(() => {
+    mountedRef.current = true;
+    setSpeechRecognitionAvailable(
+      typeof window !== "undefined"
+        && Boolean(speechRecognitionConstructor(window as SpeechRecognitionWindow)),
+    );
+    return () => {
+      mountedRef.current = false;
+      const recognition = recognitionRef.current;
+      recognitionRef.current = null;
+      recognition?.abort();
+      speechRequestRef.current += 1;
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  function stopSpeech() {
+    speechRequestRef.current += 1;
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    utteranceRef.current = null;
+    setPlayback(null);
+  }
+
+  function startNewConversation() {
+    recognitionErrorRef.current = true;
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    recognition?.abort();
+    setIsRecording(false);
+    setInput("");
+    setSpeechNotice("");
+    stopSpeech();
+    setMessages([]);
+    setSuggestions(prompts);
+  }
+
+  async function playAnswer(text: string, messageId: number, answerLanguage: AssistantLanguage) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+      setSpeechNotice("Spoken responses are not available in this browser. Text chat is still available.");
+      return;
+    }
+    stopSpeech();
+    const requestId = speechRequestRef.current;
+    const synthesizer = window.speechSynthesis;
+    const voice = await waitForMatchingSpeechVoice(synthesizer, answerLanguage);
+    if (!mountedRef.current || requestId !== speechRequestRef.current) return;
+    if (!voice) {
+      setSpeechNotice(`No ${ASSISTANT_LANGUAGES.find((item) => item.code === answerLanguage)?.name ?? "selected-language"} speech voice is available on this device. The text answer is still available.`);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = speechLocale(answerLanguage);
+    utterance.voice = voice;
+    utterance.onend = () => {
+      if (utteranceRef.current === utterance && requestId === speechRequestRef.current && mountedRef.current) {
+        utteranceRef.current = null;
+        setPlayback(null);
+      }
+    };
+    utterance.onerror = () => {
+      if (utteranceRef.current === utterance && requestId === speechRequestRef.current && mountedRef.current) {
+        utteranceRef.current = null;
+        setPlayback(null);
+        setSpeechNotice("The selected speech voice could not read this response. Text remains available.");
+      }
+    };
+    utteranceRef.current = utterance;
+    setSpeechNotice("");
+    setPlayback({ messageId, state: "playing" });
+    synthesizer.speak(utterance);
+  }
+
+  function startRecording() {
+    if (busy || recognitionRef.current) return;
+    if (typeof window === "undefined") return;
+    const Recognition = speechRecognitionConstructor(window as SpeechRecognitionWindow);
+    if (!Recognition) {
+      setSpeechRecognitionAvailable(false);
+      setSpeechNotice("Speech input is not supported in this browser. You can still type your question.");
+      return;
+    }
+
+    stopSpeech();
+    const recognition = new Recognition();
+    recognition.lang = recognitionLocale(language);
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognitionTextRef.current = "";
+    recognitionErrorRef.current = false;
+    setInput("");
+    setSpeechNotice(`Requesting ${ASSISTANT_LANGUAGES.find((item) => item.code === language)?.name} speech recognition. Browser language support varies; review the transcript before sending.`);
+    recognition.onresult = (event) => {
+      if (recognitionRef.current !== recognition) return;
+      const transcript = speechTranscript(event);
+      recognitionTextRef.current = transcript.trim();
+      setInput(transcript);
+    };
+    recognition.onerror = (event) => {
+      if (recognitionRef.current !== recognition) return;
+      recognitionErrorRef.current = true;
+      const message = recognitionErrorMessage(event.error);
+      if (mountedRef.current) {
+        setSpeechNotice(message);
+        setIsRecording(false);
+      }
+      recognitionRef.current = null;
+    };
+    recognition.onend = () => {
+      if (recognitionRef.current !== recognition) return;
+      recognitionRef.current = null;
+      if (!mountedRef.current) return;
+      setIsRecording(false);
+      if (!recognitionErrorRef.current && !recognitionTextRef.current) {
+        setSpeechNotice("No speech was transcribed. Try again or type your question.");
+      } else if (recognitionTextRef.current) {
+        setSpeechNotice("Transcript ready. Edit it if needed, then send your question.");
+      }
+    };
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+      setIsRecording(true);
+    } catch {
+      recognitionRef.current = null;
+      setIsRecording(false);
+      setSpeechNotice("The microphone could not be started. Check browser microphone permissions or continue with text.");
+    }
+  }
+
+  function stopRecording() {
+    recognitionRef.current?.stop();
+    setIsRecording(false);
+  }
+
+  function cancelRecording() {
+    recognitionErrorRef.current = true;
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    recognition?.abort();
+    setIsRecording(false);
+    recognitionTextRef.current = "";
+    setInput("");
+    setSpeechNotice("Recording canceled.");
+  }
+
   async function send(text: string) {
     const question = text.trim();
-    if (!question || busy || !hasLocation) return;
+    if (!question || busyRef.current || !hasLocation) return;
+    const recognition = recognitionRef.current;
+    if (recognition) {
+      recognitionErrorRef.current = true;
+      recognitionRef.current = null;
+      recognition.abort();
+      setIsRecording(false);
+    }
+    const answerLanguage = language;
+    busyRef.current = true;
     const history = messages.slice(-8).map((m) => ({ role: m.role, text: m.text }));
     setMessages((prev) => [...prev, { id: idRef.current++, role: "user", text: question, time: now() }]);
     setInput("");
@@ -139,17 +331,20 @@ export function AssistantClient({ lat, lon }: { lat: string; lon: string }) {
       const res = await fetch(`${API_URL}/api/assistant/chat`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: question, lat: latNum, lon: lonNum, history }),
+        body: JSON.stringify({ message: question, language: answerLanguage, lat: latNum, lon: lonNum, history }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? data.detail ?? "The assistant couldn't respond. Please try again.");
       const reply = data as Reply;
-      setMessages((prev) => [...prev, { id: idRef.current++, role: "assistant", text: reply.answer, time: now(), reply }]);
+      const messageId = idRef.current++;
+      setMessages((prev) => [...prev, { id: messageId, role: "assistant", text: reply.answer, time: now(), reply, language: answerLanguage }]);
       if (reply.suggested_questions.length) setSuggestions(reply.suggested_questions);
+      if (speechEnabled) void playAnswer(reply.answer, messageId, answerLanguage);
     } catch (err) {
       const message = err instanceof Error ? err.message : "The assistant couldn't respond. Please try again.";
       setMessages((prev) => [...prev, { id: idRef.current++, role: "assistant", text: message, time: now(), error: true }]);
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   }
@@ -198,7 +393,7 @@ export function AssistantClient({ lat, lon }: { lat: string; lon: string }) {
       <div className="grid gap-6 lg:grid-cols-[260px_1fr_290px]">
         {/* Sidebar */}
         <aside className="space-y-5 rounded-3xl border border-brand-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-brand-900/60 dark:shadow-none">
-          <button type="button" onClick={() => { setMessages([]); setSuggestions(prompts); }} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 hover:brightness-110">
+          <button type="button" onClick={startNewConversation} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 hover:brightness-110">
             <Plus className="h-4 w-4" /> New conversation
           </button>
           <div>
@@ -225,6 +420,43 @@ export function AssistantClient({ lat, lon }: { lat: string; lon: string }) {
 
         {/* Conversation */}
         <section className="flex min-h-[560px] flex-col overflow-hidden rounded-3xl border border-brand-200 bg-white shadow-xl dark:border-white/10 dark:bg-brand-900/60 dark:shadow-none">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-brand-200 p-4 dark:border-white/10">
+            <label className="flex flex-wrap items-center gap-2 text-sm font-medium text-brand-800 dark:text-brand-100">
+              <span>Answer language</span>
+              <select
+                value={language}
+                onChange={(event) => {
+                  if (isRecording) cancelRecording();
+                  stopSpeech();
+                  setLanguage(event.target.value as AssistantLanguage);
+                  setSpeechNotice("Answer language changed. Speech features depend on browser and device support.");
+                }}
+                aria-label="Assistant response language"
+                aria-describedby="assistant-language-help"
+                className="rounded-lg border border-brand-200 bg-white px-2.5 py-2 text-sm text-brand-900 outline-none focus:border-emerald-500 dark:border-white/15 dark:bg-brand-950 dark:text-white"
+              >
+                {ASSISTANT_LANGUAGES.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
+              </select>
+            </label>
+            <label className="flex items-center gap-2 text-sm text-brand-700 dark:text-brand-200">
+              <input
+                type="checkbox"
+                checked={speechEnabled}
+                onChange={(event) => {
+                  setSpeechEnabled(event.target.checked);
+                  if (!event.target.checked) stopSpeech();
+                  setSpeechNotice(event.target.checked
+                    ? "Automatic speech is on for new answers when a matching voice is available."
+                    : "Automatic speech is off. You can play an answer individually.");
+                }}
+                className="h-4 w-4 rounded border-brand-300 accent-emerald-600"
+              />
+              Automatically speak new answers
+            </label>
+            <p id="assistant-language-help" className="basis-full text-xs text-brand-600 dark:text-brand-300/70">
+              Text answers use this language. Speech recognition and playback are separate browser capabilities.
+            </p>
+          </div>
           <div className="flex-1 space-y-6 overflow-y-auto p-5 sm:p-7">
             {messages.length === 0 && (
               <div className="as-rise flex flex-col items-center gap-6 py-6 text-center">
@@ -262,6 +494,35 @@ export function AssistantClient({ lat, lon }: { lat: string; lon: string }) {
                   </div>
 
                   {m.reply?.chart && <RainTrendCard chart={m.reply.chart} />}
+
+                  {m.role === "assistant" && !m.error && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {playback?.messageId === m.id && playback.state === "playing" ? (
+                        <button type="button" aria-label="Pause spoken answer" aria-pressed="false" onClick={() => {
+                          window.speechSynthesis.pause();
+                          setPlayback({ messageId: m.id, state: "paused" });
+                        }} className="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-2 text-xs font-medium text-brand-800 hover:bg-brand-50 dark:border-white/15 dark:text-brand-100 dark:hover:bg-white/5">
+                          <Pause className="h-3.5 w-3.5" /> Pause
+                        </button>
+                      ) : (
+                        <button type="button" aria-label={playback?.messageId === m.id ? "Resume spoken answer" : "Play spoken answer"} onClick={() => {
+                          if (playback?.messageId === m.id && playback.state === "paused") {
+                            window.speechSynthesis.resume();
+                            setPlayback({ messageId: m.id, state: "playing" });
+                          } else {
+                            void playAnswer(m.text, m.id, m.language ?? language);
+                          }
+                        }} className="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-2 text-xs font-medium text-brand-800 hover:bg-brand-50 dark:border-white/15 dark:text-brand-100 dark:hover:bg-white/5">
+                          <Play className="h-3.5 w-3.5" /> {playback?.messageId === m.id ? "Resume" : "Play response"}
+                        </button>
+                      )}
+                      {playback?.messageId === m.id && (
+                        <button type="button" aria-label="Stop spoken answer" onClick={stopSpeech} className="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-2 text-xs font-medium text-brand-800 hover:bg-brand-50 dark:border-white/15 dark:text-brand-100 dark:hover:bg-white/5">
+                          <Square className="h-3.5 w-3.5" /> Stop
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {m.reply && m.reply.key_insights.length > 0 && (
                     <div className="as-rise rounded-2xl border border-emerald-400/30 bg-emerald-50/70 p-5 dark:bg-emerald-400/10">
@@ -309,19 +570,44 @@ export function AssistantClient({ lat, lon }: { lat: string; lon: string }) {
           </div>
 
           <div className="border-t border-brand-200 p-4 sm:p-5 dark:border-white/10">
-            <form onSubmit={onSubmit} className="flex items-center gap-2 rounded-2xl border border-brand-200 bg-brand-50 p-2 pl-5 shadow-inner transition focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-400/20 dark:border-white/10 dark:bg-white/[0.05]">
+            <form onSubmit={onSubmit} className="flex flex-wrap items-center gap-2 rounded-2xl border border-brand-200 bg-brand-50 p-2 pl-3 shadow-inner transition focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-400/20 sm:pl-5 dark:border-white/10 dark:bg-white/[0.05]">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 maxLength={1000}
-                placeholder="Ask about this place…"
+                placeholder="Ask or edit a transcript…"
                 aria-label="Ask a question"
                 className="min-w-0 flex-1 bg-transparent py-2.5 text-[15px] text-brand-900 outline-none placeholder:text-brand-500 dark:text-white dark:placeholder:text-brand-300/60"
               />
+              {isRecording ? (
+                <>
+                  <span className="flex items-center gap-1.5 px-2 text-xs font-medium text-red-700 dark:text-red-300" role="status" aria-live="polite">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" /> Listening
+                  </span>
+                  <button type="button" onClick={stopRecording} aria-label="Stop recording" className="flex h-11 w-11 items-center justify-center rounded-xl border border-red-300 text-red-700 hover:bg-red-50 dark:border-red-400/30 dark:text-red-300">
+                    <Square className="h-4 w-4" />
+                  </button>
+                  <button type="button" onClick={cancelRecording} aria-label="Cancel recording" className="rounded-lg px-2 py-2 text-xs font-medium text-brand-700 hover:bg-white dark:text-brand-200 dark:hover:bg-white/10">
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={startRecording} disabled={busy} aria-label="Start voice input" title={speechRecognitionAvailable ? "Start voice input" : "Speech input may not be supported in this browser"} className="flex h-11 w-11 items-center justify-center rounded-xl border border-brand-300 text-brand-800 transition hover:bg-white disabled:opacity-40 dark:border-white/15 dark:text-brand-100 dark:hover:bg-white/10">
+                  <Mic className="h-4 w-4" />
+                </button>
+              )}
               <button type="submit" disabled={busy || input.trim() === ""} aria-label="Send question" className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-600/30 transition hover:scale-105 disabled:scale-100 disabled:opacity-40">
                 <Send className="h-4 w-4" />
               </button>
             </form>
+            {speechNotice && <p role="status" aria-live="polite" className="mt-2 text-xs text-brand-700 dark:text-brand-200">{speechNotice}</p>}
+            {speechRecognitionAvailable ? (
+              <p className="mt-1 flex items-center gap-1.5 text-[11px] text-brand-600 dark:text-brand-300/70"><Mic className="h-3 w-3" /> Speech requests {recognitionLocale(language)}; the browser service may not support it. Review transcripts before sending.</p>
+            ) : (
+              <p className="mt-1 flex items-center gap-1.5 text-[11px] text-amber-800 dark:text-amber-200"><VolumeX className="h-3 w-3" /> Speech recognition is unavailable in this browser; text chat remains available.</p>
+            )}
+            {speechEnabled && <p className="mt-1 flex items-center gap-1.5 text-[11px] text-brand-600 dark:text-brand-300/70"><Volume2 className="h-3 w-3" /> Auto-speak is on; only a matching {ASSISTANT_LANGUAGES.find((item) => item.code === language)?.name} voice will be used.</p>}
+            <p className="mt-1 text-[11px] text-brand-600 dark:text-brand-300/60">Microphone audio is handled by your browser&apos;s speech service. AgriShift receives only the transcript when you send it.</p>
             <p className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-brand-600 dark:text-brand-300/60"><Info className="h-3 w-3" /> Answers come from NASA data for this place. They are not crop or chemical advice; consult your local agronomist.</p>
           </div>
         </section>

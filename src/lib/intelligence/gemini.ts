@@ -2,6 +2,11 @@ import 'server-only';
 
 import type { GroundedAssistantContext } from './context';
 import type { AgriculturalAssessment } from '@/lib/agriculture/assessment';
+import {
+  assistantLanguageInstruction,
+  DEFAULT_ASSISTANT_LANGUAGE,
+  type AssistantLanguage,
+} from '@/lib/assistant/languages';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.6-flash';
 const geminiGenerateContentUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -36,9 +41,10 @@ function timeoutMs(): number {
   return Math.min(30_000, Math.max(5_000, configured));
 }
 
-function systemInstruction(): string {
+function systemInstruction(language: AssistantLanguage): string {
   return [
     'You are AgriShif AI, a welcoming agricultural observation guide.',
+    assistantLanguageInstruction(language),
     'NASA observations supplied in the request are the only verified local environmental evidence. Interpret, do not invent.',
     'Use only those supplied observations for location-specific factual claims. The server already retrieved them; do not claim you independently accessed NASA.',
     'Never invent measurements, dates, units, source results, rainfall totals, trends, risk scores, yields, or crop suitability.',
@@ -50,8 +56,9 @@ function systemInstruction(): string {
     'Start with a short, natural explanation a farmer can understand. For a general question, answer in no more than 140 words, using at most three short paragraphs. Share only one or two relevant measured facts rather than listing every statistic; include units, dates, and the supporting source in ordinary language. Avoid headings unless they make a complex answer easier to follow.',
     'Avoid numbered reports, long technical caveats, coordinates in the prose, product identifiers, variable codes, internal retrieval states, and raw API errors. Prefer terms such as NASA weather readings over internal product names unless the user asks for technical detail. Do not add general agricultural advice unless the question asks what the measurements mean; if you do, label it as general guidance.',
     'Clearly separate measured facts, interpretation, and cautious general agricultural guidance; label general knowledge and never use it to imply a local measurement. Explain which source and dates support key claims; identify uncertainty and insufficient evidence. Correlation is not causation.',
+    'A short rainfall window is not a seasonal rainfall trend. Missing soil-moisture observations are unknown, not evidence that soil is dry. Nearby FIRMS detections alone do not establish that the selected farm was affected.',
     'Do not give unsupported crop recommendations, yield predictions, or definitive climate-risk conclusions.',
-    'When agricultural screening context is supplied, use it as a transparent rule-based screen. Explain its assumptions and limitations, and do not upgrade uncertain or not-in-window crops into recommendations.',
+    'When agricultural screening context is supplied, use it as a transparent rule-based screen. Explain its assumptions and limitations, identify important unavailable factors such as soil or irrigation where relevant, and do not upgrade uncertain or not-in-window crops into recommendations.',
     'If the selected point is outside Nigeria, never describe it as a Nigerian observation.',
     'Answer concisely in plain language. If the question cannot be answered from the available evidence, say so and explain what is missing without listing backend failures.',
   ].join(' ');
@@ -73,19 +80,39 @@ function modelInput(
   ].join('\n\n');
 }
 
-function outputText(value: unknown): string | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+type GeminiOutput =
+  | { answer: string; failure?: never }
+  | { answer?: never; failure: 'blocked' | 'empty' | 'invalid' };
+
+function isGenerationBlocked(candidate: Record<string, unknown> | undefined): boolean {
+  const finishReason = candidate?.finishReason;
+  return typeof finishReason === 'string'
+    && ['SAFETY', 'RECITATION', 'BLOCKLIST', 'PROHIBITED_CONTENT', 'SPII'].includes(finishReason);
+}
+
+function outputText(value: unknown): GeminiOutput {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return { failure: 'invalid' };
   const response = value as Record<string, unknown>;
-  if (!Array.isArray(response.candidates) || response.candidates.length === 0) return null;
+  const feedback = response.promptFeedback;
+  if (feedback && typeof feedback === 'object' && !Array.isArray(feedback)) {
+    const blockReason = (feedback as Record<string, unknown>).blockReason;
+    if (typeof blockReason === 'string' && blockReason !== 'BLOCK_REASON_UNSPECIFIED') {
+      return { failure: 'blocked' };
+    }
+  }
+  if (!Array.isArray(response.candidates)) return { failure: 'invalid' };
+  if (response.candidates.length === 0) return { failure: 'empty' };
 
   const candidate = response.candidates[0] as Record<string, unknown>;
-  if (!candidate || typeof candidate !== 'object') return null;
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return { failure: 'invalid' };
   const content = candidate.content as Record<string, unknown> | undefined;
-  if (!content || typeof content !== 'object' || !Array.isArray(content.parts)) return null;
+  if (!content || typeof content !== 'object' || !Array.isArray(content.parts)) {
+    return { failure: isGenerationBlocked(candidate) ? 'blocked' : 'empty' };
+  }
 
   const texts: string[] = [];
   for (const part of content.parts) {
-    if (!part || typeof part !== 'object' || Array.isArray(part)) return null;
+    if (!part || typeof part !== 'object' || Array.isArray(part)) return { failure: 'invalid' };
     const textPart = part as Record<string, unknown>;
     if (typeof textPart.text === 'string') {
       texts.push(textPart.text);
@@ -93,7 +120,8 @@ function outputText(value: unknown): string | null {
   }
 
   const answer = texts.join('\n').trim();
-  return answer || null;
+  if (answer) return { answer };
+  return { failure: isGenerationBlocked(candidate) ? 'blocked' : 'empty' };
 }
 
 function sanitizedProviderMessage(value: unknown): string | undefined {
@@ -110,6 +138,7 @@ export async function generateGroundedAnswer(
   history: AssistantTurn[],
   context: GroundedAssistantContext,
   agriculture?: AgriculturalAssessment,
+  language: AssistantLanguage = DEFAULT_ASSISTANT_LANGUAGE,
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
@@ -131,7 +160,7 @@ export async function generateGroundedAnswer(
       },
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: systemInstruction() }],
+          parts: [{ text: systemInstruction(language) }],
         },
         contents: [
           {
@@ -208,9 +237,21 @@ export async function generateGroundedAnswer(
     throw new GeminiServiceError('Gemini returned an invalid response.', 502, 'invalid_response');
   }
 
-  const answer = outputText(result);
-  if (!answer || answer.length > 12_000) {
-    throw new GeminiServiceError('Gemini returned an empty or invalid answer.', 502, 'invalid_response');
+  const output = outputText(result);
+  if (output.failure) {
+    const message = output.failure === 'blocked'
+      ? 'Gemini could not provide an answer for this question. Try rephrasing it.'
+      : output.failure === 'empty'
+        ? 'Gemini returned no text for this question. Please try again.'
+        : 'Gemini returned an invalid response.';
+    throw new GeminiServiceError(message, 502, 'invalid_response');
+  }
+  const answer = output.answer;
+  if (typeof answer !== 'string') {
+    throw new GeminiServiceError('Gemini returned an invalid response.', 502, 'invalid_response');
+  }
+  if (answer.length > 12_000) {
+    throw new GeminiServiceError('Gemini returned an answer that was too long. Please try a shorter question.', 502, 'invalid_response');
   }
   return answer;
 }
